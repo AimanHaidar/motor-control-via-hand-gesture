@@ -3,13 +3,6 @@ import mediapipe as mp
 import time
 import numpy as np
 from math import pi
-'''
-
-
-# Example: rotate points
-points = np.array([[1, 0], [0, 1], [1, 1]])  # three points
-rotated = rotate_2d(points, 90)  # rotate 90° CCW
-print(rotated)'''
 
 # FINGER INDEXES
 THUMB = 0
@@ -51,8 +44,20 @@ class HandGestureDetector():
 			min_detection_confidence=min_detection_confidence,
 			min_tracking_confidence=min_tracking_confidence
 		)
-
-		self.cap = cv2.VideoCapture(camera_address)
+		self.camera_address = camera_address
+		self.cap = cv2.VideoCapture(self.camera_address)
+		start_time = time.time()
+		while True:
+			print(f"Waiting for camera {self.camera_address} to open...")
+			if self.cap.isOpened():
+				print(f"Camera {self.camera_address} opened.")
+				break
+			if time.time() - start_time > 5:  # wait up to 5 seconds
+				self.cap.release()
+				raise TimeoutError(f"Failed to open camera source {self.camera_address}")
+			else:
+				self.cap = cv2.VideoCapture(self.camera_address)
+				time.sleep(0.1)
 		self.fps = fps
 		self.indecies_relative_to_wrist = [Point() for _ in range(21)]
 		self.running = False
@@ -106,8 +111,22 @@ class HandGestureDetector():
 		last_time = 0
 		while True:
 			ret, frame = self.cap.read()
+			
 			if not ret:
-				break
+				start_time = time.time()
+				while True:
+					if ret:
+						print(f"Camera returned.")
+						break
+					if time.time() - start_time > 5:  # wait up to 5 seconds
+						self.cap.release()
+						raise TimeoutError(f"camera disconnected")
+					else:
+						self.cap = cv2.VideoCapture(self.camera_address)
+						ret, frame = self.cap.read()
+						print(ret)
+						print(f"Waiting for camera to return...")
+						time.sleep(0.1)
 
 			# Limit FPS
 			current_time = time.time()
@@ -116,7 +135,7 @@ class HandGestureDetector():
 			last_time = current_time
 
 			# ✅ Rotate if needed
-			#frame = cv2.rotate(frame, cv2.ROTATE_90_CLOCKWISE)
+			#frame = cv2.rotate(frame, -cv2.ROTATE_90_CLOCKWISE)
 
 			# Flip for mirror effect
 			#frame = cv2.rotate(frame, 2)
