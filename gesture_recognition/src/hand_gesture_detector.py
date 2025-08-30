@@ -28,6 +28,17 @@ mp_hands = mp.solutions.hands
 # Provides helper functions to draw landmarks and connections on the image
 mp_drawing = mp.solutions.drawing_utils
 
+class Point:
+    def __init__(self, *args):
+        if len(args) == 0:
+            self.x, self.y = 0, 0
+        elif len(args) == 1:
+            self.x, self.y = args[0], args[0]
+        elif len(args) == 2:
+            self.x, self.y = args
+        else:
+            raise ValueError("Too many arguments")
+
 class HandGestureDetector:
 	def __init__(self,camera_address=0,fps = 10 , max_num_hands=1, min_detection_confidence=0.3, min_tracking_confidence=0.6):
 		self.hands = mp_hands.Hands(
@@ -55,39 +66,36 @@ class HandGestureDetector:
 		# center the hand around the wrist and middle finger first index 9
 		#dx = hand_landmarks.landmark[WRIST_INDEX].x
 		#dy = hand_landmarks.landmark[WRIST_INDEX].y
-		rotation_angle = -pi/2+np.arctan2(hand_landmarks.landmark[BASE_MIDDLE_FINGER_INDEX].y - hand_landmarks.landmark[WRIST_INDEX].y,
+		rotation_angle = pi/2-np.arctan2(hand_landmarks.landmark[BASE_MIDDLE_FINGER_INDEX].y - hand_landmarks.landmark[WRIST_INDEX].y,
 									hand_landmarks.landmark[BASE_MIDDLE_FINGER_INDEX].x - hand_landmarks.landmark[WRIST_INDEX].x)
 		print(np.degrees(rotation_angle))
 
 		# initialize list for the relative coordinates with wrist
-		indices_relative_to_wrist = [[0, 0] for _ in range(21)]
+		indices_relative_to_wrist = [Point() for _ in range(21)]
 		for i in range(0,21):
 			# get the coordinates relative to the wrist
-			relative_x = hand_landmarks.landmark[i].x - hand_landmarks.landmark[WRIST_INDEX].x
+			relative_x = -hand_landmarks.landmark[i].x + hand_landmarks.landmark[WRIST_INDEX].x
 			relative_y = hand_landmarks.landmark[i].y - hand_landmarks.landmark[WRIST_INDEX].y
+			relative_point = Point(relative_x, relative_y)
 			# rotate the coordinates around the wrist
-			rotated_coords = self._rotate_2d(np.array([[relative_x, relative_y]]), -np.degrees(rotation_angle))
-			indices_relative_to_wrist[i][0] = rotated_coords[0][0]
-			indices_relative_to_wrist[i][1] = rotated_coords[0][1]
-			
+			rotated_coords = self._rotate_2d(np.array([[relative_point.x, relative_point.y]]), -np.degrees(rotation_angle))
+			indices_relative_to_wrist[i].x = rotated_coords[0][0]
+			indices_relative_to_wrist[i].y = rotated_coords[0][1]
 
-
-		print("writs:",indices_relative_to_wrist[0]," middle:",indices_relative_to_wrist[9])
-		print("hand not flipped")
 		# to Check if it is the front or the back hand face
 		# TODO: make finger detection work on relative coordinates
-		if hand_landmarks.landmark[pip[THUMB]].x > hand_landmarks.landmark[tips[PINKY]].x :
+		if indices_relative_to_wrist[pip[THUMB]].x > indices_relative_to_wrist[tips[PINKY]].x :
 			print("front_face")
 		# Thumb
-			fingers.append(1 if hand_landmarks.landmark[tips[THUMB]].x > hand_landmarks.landmark[pip[THUMB]].x else 0)
+			fingers.append(1 if indices_relative_to_wrist[tips[THUMB]].x > indices_relative_to_wrist[pip[THUMB]].x else 0)
 		else:
 			print("back_face")
-			fingers.append(1 if hand_landmarks.landmark[tips[THUMB]].x < hand_landmarks.landmark[pip[THUMB]].x else 0)
+			fingers.append(1 if indices_relative_to_wrist[tips[THUMB]].x < indices_relative_to_wrist[pip[THUMB]].x else 0)
 
 		# Other fingers
 		for i in range(1, 5):
-			fingers.append(1 if hand_landmarks.landmark[tips[i]].y < hand_landmarks.landmark[pip[i]].y else 0)
-	
+			fingers.append(1 if indices_relative_to_wrist[tips[i]].y > indices_relative_to_wrist[pip[i]].y else 0)
+
 		return fingers
 	
 	def run(self):
