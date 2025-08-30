@@ -2,12 +2,19 @@ import cv2
 import mediapipe as mp
 import time
 
-mp_hands = mp.solutions.hands
+# Shortcuts for mp classes:
+# The main class that runs the hand detection/tracking.
+mp_hands = mp.solutions.hands 
+# Provides helper functions to draw landmarks and connections on the image
 mp_drawing = mp.solutions.drawing_utils
 
 def get_finger_status(hand_landmarks):
+	# each point on hand have index for example:
+	# the wrist index is 0 the thumb finger [1,2,3,4] so it's tip is 4
+	# and the pip is what point we want to determain if the 
+	# finger is up or down
 	fingers = []
-	tips = [4, 8, 12, 16, 20]
+	tips = [4, 8, 12, 16, 20] #the tips for each finger 
 	pip = [3, 6, 10, 14, 18]
 	front_hand_face = True
 	# to Check if the hand is flipped or not
