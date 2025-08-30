@@ -74,5 +74,23 @@ with mp_hands.Hands(
 		if cv2.waitKey(1) & 0xFF == ord('q'):  # ESC to exit
 			break
 
+		# ✅ Rotate if needed
+		frame = cv2.rotate(frame, cv2.ROTATE_90_CLOCKWISE)
+
+		# Flip for mirror effect
+		#frame = cv2.rotate(frame, 2)
+
+		rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+		results = hands.process(rgb)
+
+		if results.multi_hand_landmarks:
+			for hand_landmarks in results.multi_hand_landmarks:
+				mp_drawing.draw_landmarks(frame, hand_landmarks, mp_hands.HAND_CONNECTIONS)
+
+				fingers = get_finger_status(hand_landmarks)
+				gesture = ''.join(str(f) for f in fingers)
+				cv2.putText(frame, f"{gesture}", (10, 50),
+							cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+
 cap.release()
 cv2.destroyAllWindows()
