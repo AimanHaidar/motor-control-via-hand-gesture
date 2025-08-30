@@ -42,3 +42,37 @@ def get_finger_status(hand_landmarks):
 			fingers.append(1 if hand_landmarks.landmark[tips[i]].y < hand_landmarks.landmark[pip[i]].y else 0)
 	return fingers
 
+
+# ✅ Connect to phone stream
+#cap = cv2.VideoCapture("http://192.168.0.75:8080/video")
+cap = cv2.VideoCapture(0)
+
+# Skip frames to lower FPS
+TARGET_FPS = 10   # process ~10 frames per second
+last_time = 0
+
+# creates a Mediapipe Hands object (a model that detects and tracks hands)
+with mp_hands.Hands(
+	static_image_mode=False,
+	max_num_hands=1,
+	min_detection_confidence=0.6, #Minimum confidence for the initial hand detection (before tracking starts).
+	min_tracking_confidence=0.6 # Confidence threshold for tracking hand landmarks across frames.
+) as hands:
+	while True:
+		ret, frame = cap.read()
+		if not ret:
+			break
+
+		# Limit FPS
+		current_time = time.time()
+		if (current_time - last_time) < 1.0 / TARGET_FPS:
+			continue
+		last_time = current_time
+
+		cv2.imshow("Finger Gesture Detection", frame)
+
+		if cv2.waitKey(1) & 0xFF == ord('q'):  # ESC to exit
+			break
+
+cap.release()
+cv2.destroyAllWindows()
