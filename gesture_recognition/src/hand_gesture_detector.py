@@ -35,10 +35,10 @@ def get_finger_status(hand_landmarks):
 		if hand_landmarks.landmark[pip[THUMB]].x > hand_landmarks.landmark[tips[PINKY]].x :
 			print("front_face")
 		# Thumb
-			fingers.append(1 if hand_landmarks.landmark[tips[THUMB]].x < hand_landmarks.landmark[pip[THUMB]].x else 0)
+			fingers.append(1 if hand_landmarks.landmark[tips[THUMB]].x > hand_landmarks.landmark[pip[THUMB]].x else 0)
 		else:
 			print("back_face")
-			fingers.append(1 if hand_landmarks.landmark[tips[THUMB]].x > hand_landmarks.landmark[pip[THUMB]].x else 0)
+			fingers.append(1 if hand_landmarks.landmark[tips[THUMB]].x < hand_landmarks.landmark[pip[THUMB]].x else 0)
 
 		# Other fingers
 		for i in range(1, 5):
@@ -49,10 +49,10 @@ def get_finger_status(hand_landmarks):
 		if hand_landmarks.landmark[pip[THUMB]].x < hand_landmarks.landmark[tips[PINKY]].x :
 			print("front_face")
 		# Thumb
-			fingers.append(1 if hand_landmarks.landmark[tips[THUMB]].x > hand_landmarks.landmark[pip[THUMB]].x else 0)
+			fingers.append(1 if hand_landmarks.landmark[tips[THUMB]].x < hand_landmarks.landmark[pip[THUMB]].x else 0)
 		else:
 			print("back_face")
-			fingers.append(1 if hand_landmarks.landmark[tips[THUMB]].x < hand_landmarks.landmark[pip[THUMB]].x else 0)
+			fingers.append(1 if hand_landmarks.landmark[tips[THUMB]].x > hand_landmarks.landmark[pip[THUMB]].x else 0)
 
 		# Other fingers
 		for i in range(1, 5):
@@ -72,7 +72,7 @@ last_time = 0
 with mp_hands.Hands(
 	static_image_mode=False,
 	max_num_hands=1,
-	min_detection_confidence=0.6, #Minimum confidence for the initial hand detection (before tracking starts).
+	min_detection_confidence=0.3, #Minimum confidence for the initial hand detection (before tracking starts).
 	min_tracking_confidence=0.6 # Confidence threshold for tracking hand landmarks across frames.
 ) as hands:
 	
@@ -107,7 +107,7 @@ with mp_hands.Hands(
 				
 		cv2.imshow("Finger Gesture Detection", frame)
 
-		if cv2.waitKey(1) & 0xFF == 27:  # ESC to exit
+		if cv2.waitKey(1) & 0xFF == ord('q'):  # ESC to exit
 			break
 
 cap.release()
