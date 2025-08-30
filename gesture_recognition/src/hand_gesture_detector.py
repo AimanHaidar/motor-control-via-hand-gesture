@@ -2,6 +2,16 @@ import cv2
 import mediapipe as mp
 import time
 
+# FINGER INDEXES
+THUMB = 0
+INDEX = 1
+MIDDLE = 2
+RING = 3
+PINKY = 4
+
+# Landmark index for the wrist
+WRIST_INDEX = 0
+
 # Shortcuts for mp classes:
 # The main class that runs the hand detection/tracking.
 mp_hands = mp.solutions.hands 
@@ -18,35 +28,35 @@ def get_finger_status(hand_landmarks):
 	pip = [3, 6, 10, 14, 18]
 	front_hand_face = True
 	# to Check if the hand is flipped or not
-	if hand_landmarks.landmark[0].y > hand_landmarks.landmark[pip[2]].y:
-		print(hand_landmarks.landmark[0].y," ",hand_landmarks.landmark[pip[2]].y)
+	if hand_landmarks.landmark[WRIST_INDEX].y > hand_landmarks.landmark[pip[MIDDLE]].y:
+		print(hand_landmarks.landmark[WRIST_INDEX].y," ",hand_landmarks.landmark[pip[MIDDLE]].y)
 		print("hand not flipped")
 		# to Check if it is the front or the back hand face
-		if hand_landmarks.landmark[pip[0]].x > hand_landmarks.landmark[tips[4]].x :
+		if hand_landmarks.landmark[pip[THUMB]].x > hand_landmarks.landmark[tips[PINKY]].x :
 			print("front_face")
 		# Thumb
-			fingers.append(1 if hand_landmarks.landmark[tips[0]].x < hand_landmarks.landmark[pip[0]].x else 0)
+			fingers.append(1 if hand_landmarks.landmark[tips[THUMB]].x < hand_landmarks.landmark[pip[THUMB]].x else 0)
 		else:
 			print("back_face")
-			fingers.append(1 if hand_landmarks.landmark[tips[0]].x > hand_landmarks.landmark[pip[0]].x else 0)
+			fingers.append(1 if hand_landmarks.landmark[tips[THUMB]].x > hand_landmarks.landmark[pip[THUMB]].x else 0)
 
 		# Other fingers
 		for i in range(1, 5):
 			fingers.append(1 if hand_landmarks.landmark[tips[i]].y < hand_landmarks.landmark[pip[i]].y else 0)
 	else:
-		print(hand_landmarks.landmark[0].y," ",hand_landmarks.landmark[pip[2]].y)
+		print(hand_landmarks.landmark[WRIST_INDEX].y," ",hand_landmarks.landmark[pip[MIDDLE]].y)
 		print("hand flipped")
-		if hand_landmarks.landmark[pip[0]].x < hand_landmarks.landmark[tips[4]].x :
+		if hand_landmarks.landmark[pip[THUMB]].x < hand_landmarks.landmark[tips[PINKY]].x :
 			print("front_face")
 		# Thumb
-			fingers.append(1 if hand_landmarks.landmark[tips[0]].x < hand_landmarks.landmark[pip[0]].x else 0)
+			fingers.append(1 if hand_landmarks.landmark[tips[THUMB]].x > hand_landmarks.landmark[pip[THUMB]].x else 0)
 		else:
 			print("back_face")
-			fingers.append(1 if hand_landmarks.landmark[tips[0]].x > hand_landmarks.landmark[pip[0]].x else 0)
+			fingers.append(1 if hand_landmarks.landmark[tips[THUMB]].x < hand_landmarks.landmark[pip[THUMB]].x else 0)
 
 		# Other fingers
 		for i in range(1, 5):
-			fingers.append(1 if hand_landmarks.landmark[tips[i]].y < hand_landmarks.landmark[pip[i]].y else 0)
+			fingers.append(1 if hand_landmarks.landmark[tips[i]].y > hand_landmarks.landmark[pip[i]].y else 0)
 	return fingers
 
 
@@ -65,6 +75,7 @@ with mp_hands.Hands(
 	min_detection_confidence=0.6, #Minimum confidence for the initial hand detection (before tracking starts).
 	min_tracking_confidence=0.6 # Confidence threshold for tracking hand landmarks across frames.
 ) as hands:
+	
 	while True:
 		ret, frame = cap.read()
 		if not ret:
@@ -76,13 +87,8 @@ with mp_hands.Hands(
 			continue
 		last_time = current_time
 
-		cv2.imshow("Finger Gesture Detection", frame)
-
-		if cv2.waitKey(1) & 0xFF == ord('q'):  # ESC to exit
-			break
-
 		# ✅ Rotate if needed
-		frame = cv2.rotate(frame, cv2.ROTATE_90_CLOCKWISE)
+		#frame = cv2.rotate(frame, cv2.ROTATE_90_CLOCKWISE)
 
 		# Flip for mirror effect
 		#frame = cv2.rotate(frame, 2)
@@ -98,6 +104,11 @@ with mp_hands.Hands(
 				gesture = ''.join(str(f) for f in fingers)
 				cv2.putText(frame, f"{gesture}", (10, 50),
 							cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+				
+		cv2.imshow("Finger Gesture Detection", frame)
+
+		if cv2.waitKey(1) & 0xFF == 27:  # ESC to exit
+			break
 
 cap.release()
 cv2.destroyAllWindows()
