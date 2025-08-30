@@ -2,7 +2,7 @@ import sys
 import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from gesture_recognition.src.models.hand_gesture_detector import HandGestureDetector
+from models.hand_gesture_detector import HandGestureDetector
 import csv
 import threading
 import time

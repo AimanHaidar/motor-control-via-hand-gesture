@@ -1,6 +1,6 @@
 import sys
 import os
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..','..')))
 
 import pandas as pd
 from sklearn.model_selection import train_test_split
@@ -27,5 +27,5 @@ accuracy = model.score(X_test, y_test)
 print(f"Accuracy: {accuracy:.2f}")
 
 # 6. Save the model to a pickle file
-with open("rf_model.pkl", "wb") as f:
+with open("models/rf_model.pkl", "wb") as f:
     pickle.dump(model, f)
