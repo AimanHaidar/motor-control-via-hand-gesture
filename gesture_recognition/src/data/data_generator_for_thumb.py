@@ -1,17 +1,14 @@
 import sys
 import os
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from gesture_recognition.src.hand_gesture_detector import HandGestureDetector
+from gesture_recognition.src.models.hand_gesture_detector import HandGestureDetector
 import csv
 import threading
 import time
-import keyboard
-
-
 
 def collect_data(detector):
-    with open("thumb_points.csv", "w", newline="") as f:
+    with open("data/thumb_points.csv", "w", newline="") as f:
         header = ["p1_x","p1_y","p2_x","p2_y","p3_x","p3_y","p4_x","p4_y","counted"]
         writer = csv.writer(f)
         writer.writerow(header)

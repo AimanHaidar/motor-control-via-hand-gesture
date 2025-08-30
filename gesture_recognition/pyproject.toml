@@ -8,4 +8,6 @@ dependencies = [
     "keyboard>=0.13.5",
     "mediapipe>=0.10.21",
     "opencv-python>=4.11.0.86",
+    "pandas>=2.3.2",
+    "scikit-learn>=1.7.1",
 ]
