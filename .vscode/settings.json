@@ -15,5 +15,9 @@
     "--background-index",
     "--query-driver=/home/aymanhadair/.espressif/tools/xtensa-esp-elf/esp-15.1.0_20250607/xtensa-esp-elf/bin/xtensa-esp32-elf-gcc",
     "--compile-commands-dir=${workspaceFolder}/build"
-  ]
+  ],
+  "C_Cpp.default.compileCommands": "${workspaceFolder}/firmware/build/compile_commands.json",
+  "C_Cpp.configurationWarnings": "disabled",
+  "C_Cpp.intelliSenseEngineFallback": "disabled",
+  "cmake.sourceDirectory": "/home/aymanhadair/MSD/project/motor_control_via_hand_gesture_with_RTOS/firmware"
 }
