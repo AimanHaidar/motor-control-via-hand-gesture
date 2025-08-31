@@ -21,6 +21,8 @@
   "C_Cpp.intelliSenseEngineFallback": "disabled",
   "cmake.sourceDirectory": "/home/aymanhadair/MSD/project/motor_control_via_hand_gesture_with_RTOS/firmware",
   "files.associations": {
-    "esp_wifi.h": "c"
+    "esp_wifi.h": "c",
+    "wifi_connection.h": "c",
+    "mqtt_client.h": "c"
   }
 }

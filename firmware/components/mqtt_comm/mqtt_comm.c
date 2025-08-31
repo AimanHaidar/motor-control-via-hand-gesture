@@ -2,6 +2,12 @@
 
 static const char *TAG = "mqtt_example";
 
+esp_mqtt_client_handle_t client;
+
+#define MAX_SUBSCRIBE_TOPICS 10
+static mqtt_subscribe_item_t subscriptions[MAX_SUBSCRIBE_TOPICS];
+static int subscription_count = 0;
+
 
 static void log_error_if_nonzero(const char *message, int error_code)
 {
@@ -24,15 +30,15 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
 {
     ESP_LOGD(TAG, "Event dispatched from event loop base=%s, event_id=%" PRIi32 "", base, event_id);
     esp_mqtt_event_handle_t event = event_data;
-    esp_mqtt_client_handle_t client = event->client;
+    client = event->client;
     int msg_id;
     switch ((esp_mqtt_event_id_t)event_id) {
     case MQTT_EVENT_CONNECTED:
         ESP_LOGI(TAG, "MQTT_EVENT_CONNECTED");
-        msg_id = esp_mqtt_client_publish(client, "/topic/qos1", "data_3", 0, 1, 0);
-        ESP_LOGI(TAG, "sent publish successful, msg_id=%d", msg_id);
+        /*msg_id = esp_mqtt_client_publish(client, "/topic/qos1", "data_3", 0, 1, 0);
+        ESP_LOGI(TAG, "sent publish successful, msg_id=%d", msg_id);*/
 
-        msg_id = esp_mqtt_client_subscribe(client, "/topic/qos0", 0);
+        msg_id = esp_mqtt_client_subscribe(client, "/topic/qos1", 0);
         ESP_LOGI(TAG, "sent subscribe successful, msg_id=%d", msg_id);
         break;
     case MQTT_EVENT_DISCONNECTED:
@@ -52,8 +58,16 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
         break;
     case MQTT_EVENT_DATA:
         ESP_LOGI(TAG, "MQTT_EVENT_DATA");
-        printf("TOPIC=%.*s\r\n", event->topic_len, event->topic);
-        printf("DATA=%.*s\r\n", event->data_len, event->data);
+        ESP_LOGI(TAG,"TOPIC=%.*s\r\n", event->topic_len, event->topic);
+        ESP_LOGI(TAG,"DATA=%.*s\r\n", event->data_len, event->data);
+        for (int i = 0; i < subscription_count; i++) {
+            if (strncmp(event->topic, subscriptions[i].topic, event->topic_len) == 0) {
+                // call the registered callback
+                ESP_LOGI(TAG,"TOPIC=%.*s\r\n", event->topic_len, event->topic);
+                ESP_LOGI(TAG,"DATA=%.*s\r\n", event->data_len, event->data);
+                subscriptions[i].callback(event->topic, event->data);
+            }
+        }
         break;
     case MQTT_EVENT_ERROR:
         ESP_LOGI(TAG, "MQTT_EVENT_ERROR");
@@ -107,6 +121,30 @@ static void mqtt_app_start(void)
     esp_mqtt_client_start(client);
 }
 
+esp_err_t mqtt_publish(const char *topic, const char *payload, int qos) {
+    if (!client) return ESP_ERR_INVALID_STATE;
+    return esp_mqtt_client_publish(client, topic, payload, 0, qos, 0);
+}
+
+esp_err_t mqtt_subscribe_topic(const char *topic, int qos, void (*callback)(const char *, const char *)) {
+    ESP_LOGI(TAG, "Subscribing to topic: %s with QoS %d", topic, qos);
+    if (subscription_count >= MAX_SUBSCRIBE_TOPICS) return ESP_ERR_NO_MEM;
+    subscriptions[subscription_count].topic = strdup(topic); // store a copy
+    subscriptions[subscription_count].qos = qos;
+    subscriptions[subscription_count].callback = callback;
+    subscription_count++;
+    if (client) {
+        return esp_mqtt_client_subscribe(client, topic, qos);
+    }
+    return ESP_OK;
+}
+
+
+esp_err_t mqtt_unsubscribe_topic(const char *topic) {
+    if (!client) return ESP_ERR_INVALID_STATE;
+    return esp_mqtt_client_unsubscribe(client, topic);
+}
+
 void mqtt_start(void)
 {
     ESP_LOGI(TAG, "[APP] Startup..");
@@ -123,13 +161,11 @@ void mqtt_start(void)
 
     ESP_ERROR_CHECK(nvs_flash_init());
     ESP_ERROR_CHECK(esp_netif_init());
-    ESP_ERROR_CHECK(esp_event_loop_create_default());
+    //ESP_ERROR_CHECK(esp_event_loop_create_default());
 
     /* This helper function configures Wi-Fi or Ethernet, as selected in menuconfig.
      * Read "Establishing Wi-Fi or Ethernet Connection" section in
      * examples/protocols/README.md for more information about this function.
      */
-    wifi_connect(WIFI_SSID, WIFI_PASSWORD);
-
     mqtt_app_start();
 }

@@ -16,12 +16,22 @@
 
 #define CONFIG_BROKER_URL "mqtt://192.168.0.81"
 
-
-#define WIFI_SSID "MaPh"
-#define WIFI_PASSWORD "Aiman#Alabsi#2018"
+typedef struct {
+    const char *topic;
+    int qos;
+    void (*callback)(const char *topic, const char *payload);
+} mqtt_subscribe_item_t;
 
 // Public API
 static void mqtt_app_start(void);
 void mqtt_start(void);
+// Publish a message
+esp_err_t mqtt_publish(const char *topic, const char *payload, int qos);
+
+// Subscribe to a topic
+esp_err_t mqtt_subscribe_topic(const char *topic, int qos, void (*callback)(const char *, const char *));
+
+// Unsubscribe from a topic
+esp_err_t mqtt_unsubscribe_topic(const char *topic);
 
 #endif // MQTT_COMM_H
