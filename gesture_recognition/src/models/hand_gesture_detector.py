@@ -94,11 +94,9 @@ class HandGestureDetector():
 		# to Check if it is the front or the back hand face
 		# TODO: make finger detection work on relative coordinates
 		if self.indecies_relative_to_wrist[pip[THUMB]].x > self.indecies_relative_to_wrist[tips[PINKY]].x :
-			print("front_face")
 		# Thumb
 			fingers.append(1 if self.indecies_relative_to_wrist[tips[THUMB]].x > self.indecies_relative_to_wrist[pip[THUMB]].x else 0)
 		else:
-			print("back_face")
 			fingers.append(1 if self.indecies_relative_to_wrist[tips[THUMB]].x < self.indecies_relative_to_wrist[pip[THUMB]].x else 0)
 
 		# Other fingers

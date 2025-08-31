@@ -9,7 +9,7 @@ import paho.mqtt.client as mqtt
 
 BROKER = "192.168.0.81"  # same as mqtt_server in ESP
 PORT = 1883
-TOPIC = "esp32/command/fuck"
+TOPIC = "esp32/command/speed"
 
 def on_message(client, userdata, msg):
     print(f"Received: {msg.payload.decode()} from topic {msg.topic}")
@@ -40,9 +40,11 @@ def hand_gesture(detector,publish):
             continue
 
         if detector.gesture == "00100":
-            publish(TOPIC, "fuck")
+            publish(TOPIC,"stop")
+        
         else:
-            publish(TOPIC, "stop")
+            mode = detector.gesture.count('1')
+            publish(TOPIC,mode)
 
         time.sleep(0.2)
 
