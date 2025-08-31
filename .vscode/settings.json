@@ -19,5 +19,8 @@
   "C_Cpp.default.compileCommands": "${workspaceFolder}/firmware/build/compile_commands.json",
   "C_Cpp.configurationWarnings": "disabled",
   "C_Cpp.intelliSenseEngineFallback": "disabled",
-  "cmake.sourceDirectory": "/home/aymanhadair/MSD/project/motor_control_via_hand_gesture_with_RTOS/firmware"
+  "cmake.sourceDirectory": "/home/aymanhadair/MSD/project/motor_control_via_hand_gesture_with_RTOS/firmware",
+  "files.associations": {
+    "esp_wifi.h": "c"
+  }
 }
