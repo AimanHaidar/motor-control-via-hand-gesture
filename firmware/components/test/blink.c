@@ -1,7 +1,5 @@
-#include "mqtt_comm.h"
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
-#include "esp_log.h"
+#include "blink.h"
+
 
 static const char *TAG = "BLINK";
 
