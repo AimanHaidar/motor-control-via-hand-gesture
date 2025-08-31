@@ -1,17 +1,12 @@
 #include "mqtt_comm.h"
-#include <stdbool.h>
-
 static const char *TAG = "mqtt_example";
 // Global MQTT client handle definition (declared extern in header)
 esp_mqtt_client_handle_t client = NULL;
 static int s_mqtt_connected = 0;
 
-
-
 #define MAX_SUBSCRIBE_TOPICS 10
 static mqtt_subscribe_item_t subscriptions[MAX_SUBSCRIBE_TOPICS];
 static int subscription_count = 0;
-
 
 static void log_error_if_nonzero(const char *message, int error_code)
 {

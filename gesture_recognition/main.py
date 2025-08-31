@@ -9,13 +9,10 @@ import paho.mqtt.client as mqtt
 
 BROKER = "192.168.0.81"  # same as mqtt_server in ESP
 PORT = 1883
-TOPIC = "esp32/command/velocity-mode"
+TOPIC = "esp32/command/fuck"
 
 def on_message(client, userdata, msg):
     print(f"Received: {msg.payload.decode()} from topic {msg.topic}")
-
-
-
 
 def thumb_gesture(detector,publish):
     # Load the model
@@ -36,13 +33,27 @@ def thumb_gesture(detector,publish):
             prediction = model.predict(df_sample)
             publish(TOPIC,f"Prediction: {prediction[0]}")
 
+def hand_gesture(detector,publish):
+    while not detector.closed:
+        if not detector.running:
+            time.sleep(0.05)
+            continue
+
+        if detector.gesture == "00100":
+            publish(TOPIC, "fuck")
+        else:
+            publish(TOPIC, "stop")
+
+        time.sleep(0.2)
+
+
 if __name__ == "__main__":
     # Create client and connect
     client = mqtt.Client(protocol=mqtt.MQTTv311)
     client.connect(BROKER, PORT, 60)
 
-    detector = HandGestureDetector("http://192.168.0.75:8080/video")
-    threading.Thread(target=thumb_gesture,
+    detector = HandGestureDetector(0)
+    threading.Thread(target=hand_gesture,
                     args=(detector,client.publish,),
                     daemon=True).start()
     
