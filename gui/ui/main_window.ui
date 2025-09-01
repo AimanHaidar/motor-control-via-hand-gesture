@@ -14,7 +14,7 @@
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <widget class="QPushButton" name="pushButton">
+   <widget class="QPushButton" name="set_pid">
     <property name="geometry">
      <rect>
       <x>90</x>
@@ -32,7 +32,7 @@
      <string>set PID</string>
     </property>
    </widget>
-   <widget class="QPushButton" name="pushButton_2">
+   <widget class="QPushButton" name="show_speed">
     <property name="geometry">
      <rect>
       <x>90</x>
