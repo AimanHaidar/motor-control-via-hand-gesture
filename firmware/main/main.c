@@ -60,6 +60,18 @@ void mqtt_message_callback(const char *topic, const char *payload)
     }
 }
 
+void keep_wifi_and_mqtt(void* args){
+    while(1){
+        if(wifi_connected){
+            ESP_LOGI("WIFI", "WiFi Still Connected");
+            vTaskDelay(pdMS_TO_TICKS(10000));
+            continue;
+        }
+        wifi_connect(WIFI_SSID, WIFI_PASSWORD);
+        mqtt_start();
+    }
+}
+
 void app_main(void)
 {
 
@@ -84,8 +96,15 @@ void app_main(void)
     };
     ledc_channel_config(&ledc_channel);
 
-    wifi_connect(WIFI_SSID, WIFI_PASSWORD);
-    mqtt_start();
+    xTaskCreate(
+        keep_wifi_and_mqtt,
+        "keep_wifi",
+        4096,
+        NULL,
+        3,
+        NULL
+    );
+
     int msg_id = 0;
     do{
         msg_id = mqtt_subscribe_topic("esp32/command/speed", 0, mqtt_message_callback);

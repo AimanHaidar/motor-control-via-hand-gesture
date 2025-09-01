@@ -11,6 +11,8 @@
 
 static const char* TAG = "wifi_connect";
 
+int wifi_connected = 0;
+
 // Event group to signal Wi-Fi connection
 static EventGroupHandle_t s_wifi_event_group;
 #define WIFI_CONNECTED_BIT BIT0
@@ -72,9 +74,11 @@ esp_err_t wifi_connect(const char* ssid, const char* password)
                                            pdMS_TO_TICKS(10000));
     if (bits & WIFI_CONNECTED_BIT) {
         ESP_LOGI(TAG, "Connected to Wi-Fi");
+        wifi_connected = 1;
         return ESP_OK;
     } else {
         ESP_LOGW(TAG, "Failed to connect to Wi-Fi");
+        wifi_connected = 0;
         return ESP_FAIL;
     }
 }

@@ -23,7 +23,8 @@
   "files.associations": {
     "esp_wifi.h": "c",
     "wifi_connection.h": "c",
-    "mqtt_client.h": "c"
+    "mqtt_client.h": "c",
+    "event_groups.h": "c"
   },
   "cmake.environment": {
         "IDF_PATH" : "/home/aymanhadair/esp2/esp-idf"
