@@ -25,6 +25,13 @@ extern "C"{
 #define WIFI_SSID "MaPh"
 #define WIFI_PASSWORD "Aiman#Alabsi#2018"
 
+//PID parameters
+#define MOTOR_KP 22.50
+#define MOTOR_KI 36.75
+#define MOTOR_KD 4.75
+
+#define PULSES_PER_TURN 24
+
 uint32_t pulses = 0;
 
 void mqtt_message_callback(const char *topic, const char *payload)
@@ -99,6 +106,28 @@ static void IRAM_ATTR button_isr_handler(void* arg) {
         }
     }
 }*/
+float V = 0.0f;
+float V_Filt = 0.0f;        
+float V_Prev = 0.0f;
+
+void measureMotorSpeed(void *args){
+    while(1){
+        int32_t rpm = 0;
+        // updating every 0.1 second
+        gpio_intr_disable(GPIO_NUM_13); // turn off trigger
+        //calcuate for rpm 
+        V = ((60 *1000.0 / PULSES_PER_TURN)/ (50)) * pulses;
+        V_Filt = 0.854 * V_Filt + 0.0728 * V + 0.0728 * V_Prev;
+        V_Prev = V;
+        ESP_LOGI("Speed", "Speed: %0.2f RPM", V_Filt);
+        pulses = 0;
+        //trigger count function everytime the encoder turns from HIGH to LOW
+        gpio_intr_enable(GPIO_NUM_13);
+        
+        vTaskDelay(pdMS_TO_TICKS(50));
+    }
+    
+}
 
 void init_button() {
     gpio_config_t io_conf = {};
@@ -163,6 +192,7 @@ extern "C" void app_main(void)
         vTaskDelay(pdMS_TO_TICKS(100));
     }
     while(!mqtt_is_connected() || msg_id == 0);
-    
+
+    xTaskCreate(measureMotorSpeed, "measureMotorSpeed", 2048, NULL, 5, NULL);
 
 }
