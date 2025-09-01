@@ -6,27 +6,31 @@ extern "C"{
     #include "wifi_connection.h"
     #include "mqtt_comm.h"
     #include "driver/gpio.h"
-
+    #include <math.h>
+    #include "driver/i2c.h"
     #include "driver/ledc.h"
     #include "esp_err.h"
-
+    //#include "esp_lcd_panel_io.h"
+    //#include "esp_lcd_panel_vendor.h"
     #include "rcl/rcl.h"
+    #include "driver/i2c_master.h"
 }
 
 #include "PIDController.hpp"
-
 //LEDC PIN FOR BUILT IN LED
+
 #define LED_PIN GPIO_NUM_2
 #define LED_CHANNEL LEDC_CHANNEL_0
 #define LED_TIMER LEDC_TIMER_0
-#define LED_MODE LEDC_LOW_SPEED_MODE
-#define LED_RESOLUTION LEDC_TIMER_8_BIT // 8-bit resolution (0-255)
-#define LED_FREQUENCY 5000 
+#define LED_MODE LEDC_HIGH_SPEED_MODE
+#define LED_RESOLUTION LEDC_TIMER_10_BIT // 10-bit resolution (0-1023)
+#define LED_FREQUENCY 8000 
 #define ENCODER_PIN GPIO_NUM_19  // GPIO0 as example
 // MOTOR DRIVER PINS
 #define IN1_PIN GPIO_NUM_18 
 #define IN2_PIN GPIO_NUM_17
 #define ENA_PIN GPIO_NUM_23
+#define ENA_CHANNEL LEDC_CHANNEL_1
 
 // WIFI
 #define WIFI_SSID "MaPh"
@@ -41,7 +45,8 @@ PIDController pid(MOTOR_KP, MOTOR_KI, MOTOR_KD);
 
 #define PULSES_PER_TURN 24
 
-uint16_t pulses = 0;
+volatile uint16_t pulses = 0;
+static portMUX_TYPE pulses_mux = portMUX_INITIALIZER_UNLOCKED;
 float speed = 0.0;
 float enable = 0.0;
 
@@ -63,14 +68,14 @@ extern "C" void app_main(void)
     init_encoder_pin();
     init_ledc_2();
     init_driver_pins();
-
+    
     // task for keeping WiFi and MQTT connection alive
     xTaskCreate(
         keep_wifi_and_mqtt,
         "keep_wifi",
         4096,
         NULL,
-        5,
+        15,
         NULL
     );
     // task for measuring motor speed in rpm
@@ -96,7 +101,6 @@ extern "C" void app_main(void)
         vTaskDelay(pdMS_TO_TICKS(500));
     }
     while(!mqtt_is_connected() || msg_id == 0);
-
     
 }
 
@@ -109,9 +113,8 @@ void mqtt_message_callback(const char *topic, const char *payload)
     if (strcmp(payload, "1") == 0)
     {
         ESP_LOGI("mode", "1");
-        gpio_set_level(IN1_PIN, 1);
-        gpio_set_level(IN2_PIN, 0);
-        speed = 40.0f;
+        
+        speed = 60.0f;
         ledc_set_duty(LED_MODE, LED_CHANNEL, 255/5);
         ledc_update_duty(LED_MODE, LED_CHANNEL);
 
@@ -119,36 +122,32 @@ void mqtt_message_callback(const char *topic, const char *payload)
 
     else if(strcmp(payload, "2") == 0){
         ESP_LOGI("mode", "2");
-        gpio_set_level(IN1_PIN, 1);
-        gpio_set_level(IN2_PIN, 0);
-        speed = 80.0f;
+        
+        speed = 100.0f;
         ledc_set_duty(LED_MODE, LED_CHANNEL, 255/4);
         ledc_update_duty(LED_MODE, LED_CHANNEL);
     }
     else if (strcmp(payload, "3") == 0)
     {
         ESP_LOGI("mode", "3");
-        gpio_set_level(IN1_PIN, 1);
-        gpio_set_level(IN2_PIN, 0);
-        speed = 120.0f;
+        
+        speed = 140.0f;
         ledc_set_duty(LED_MODE, LED_CHANNEL, 255/3);
         ledc_update_duty(LED_MODE, LED_CHANNEL);
     }
     else if (strcmp(payload, "4") == 0)
     {
         ESP_LOGI("mode", "4");
-        gpio_set_level(IN1_PIN, 1);
-        gpio_set_level(IN2_PIN, 0);
-        speed = 160.0f;
+        
+        speed = 200.0f;
         ledc_set_duty(LED_MODE, LED_CHANNEL, 255/2);
         ledc_update_duty(LED_MODE, LED_CHANNEL);
     }
     else if (strcmp(payload, "5") == 0)
     {
         ESP_LOGI("mode", "5");
-        gpio_set_level(IN1_PIN, 1);
-        gpio_set_level(IN2_PIN, 0);
-        speed = 200.0f;
+        
+        speed = 250.0f;
         ledc_set_duty(LED_MODE, LED_CHANNEL, 255);
         ledc_update_duty(LED_MODE, LED_CHANNEL);
     }
@@ -157,7 +156,7 @@ void mqtt_message_callback(const char *topic, const char *payload)
         ESP_LOGI("mode", "stop");
         gpio_set_level(IN1_PIN, 0);
         gpio_set_level(IN2_PIN, 0);
-        // @todo: implement stop behavior
+        speed = 0;
         ledc_set_duty(LED_MODE, LED_CHANNEL, 0);
         ledc_update_duty(LED_MODE, LED_CHANNEL);
     }
@@ -173,17 +172,13 @@ void pid_message_callback(const char *topic, const char *payload)
     {
         // Parse the PID values from the payload
         float kp, ki, kd;
-        try{
-            sscanf(payload, "%f,%f,%f", &kp, &ki, &kd);
-        }
-        catch(...){
-            ESP_LOGE("PID", "Error parsing PID values from payload: %s", payload);
-            return;
-        }
+
+        sscanf(payload, "%f,%f,%f", &kp, &ki, &kd);
+        
         ESP_LOGI("PID", "Received new PID values: Kp=%0.2f, Ki=%0.2f, Kd=%0.2f", kp, ki, kd);
 
         // Update the PID controller with the new values
-        pid.setTunings(kp, ki, kd);
+        //pid.setTunings(kp, ki, kd);
     }
 }
 
@@ -210,9 +205,9 @@ static QueueHandle_t gpio_evt_queue = xQueueCreate(10, sizeof(uint32_t));
  *
  */
 static void IRAM_ATTR encoder_pin_isr_handler(void* arg) {
-    int pin = (int)arg;
-    // For example, just print pin number
-    ++pulses;
+    portENTER_CRITICAL_ISR(&pulses_mux);
+    pulses++;
+    portEXIT_CRITICAL_ISR(&pulses_mux);
 }
 
 
@@ -229,22 +224,18 @@ static void IRAM_ATTR encoder_pin_isr_handler(void* arg) {
 float V = 0.0f;
 float V_Filt = 0.0f;        
 float V_Prev = 0.0f;
-
 void measureMotorSpeed(void *args){
     while(1){
         int32_t rpm = 0;
         // updating every 0.1 second
-        gpio_intr_disable(GPIO_NUM_13); // turn off trigger
-        //calcuate for rpm 
+        taskENTER_CRITICAL(&pulses_mux); // protect pulses while reading/resetting
+        // calculate rpm 
         V = ((60 *1000.0 / PULSES_PER_TURN)/ (50)) * pulses;
+        pulses = 0;
+        taskEXIT_CRITICAL(&pulses_mux);
         V_Filt = 0.854 * V_Filt + 0.0728 * V + 0.0728 * V_Prev;
         V_Prev = V;
-        ESP_LOGI("Speed", "Speed: %0.2f RPM", V_Filt);
-        ESP_LOGI("set Speed", "Speed: %0.2f RPM", speed);
-        pulses = 0;
-        //trigger count function everytime the encoder turns from HIGH to LOW
-        gpio_intr_enable(GPIO_NUM_13);
-        
+        //ESP_LOGI("Speed: ", "Speed: %0.2f RPM", V_Filt,"set Speed: ", "%0.2f RPM", speed);
         vTaskDelay(pdMS_TO_TICKS(50));
     }
 }
@@ -278,6 +269,7 @@ void init_driver_pins(){
     .gpio_num   = ENA_PIN,
     .speed_mode = LED_MODE,
     .channel    = LEDC_CHANNEL_1,
+    .intr_type      = LEDC_INTR_DISABLE,
     .timer_sel  = LED_TIMER,
     .duty       = 0,
     .hpoint     = 0
@@ -327,9 +319,41 @@ void pid_control_task(void *args) {
         pid.setValues(speed, V_Filt); // Example setpoint and actual value
         pid.control();
         //ESP_LOGI("PID", "PID Output: %0.2f", pid.output);
-        if (pid.output < 256 && pid.output > 0) {
-            ledc_set_duty(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_1, pid.output);
-            ledc_update_duty(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_1);
+        float u = pid.output;
+
+        // Clamp PWM
+        int pwm = std::min(255, (int)fabs(u));
+
+        // Set PWM duty
+        
+        
+
+        // Motor direction
+        if(speed != 0){
+            if(u < 1023 && u > 0){
+                gpio_set_level(IN1_PIN, 1);
+                gpio_set_level(IN2_PIN, 0);
+                ledc_set_duty(LEDC_HIGH_SPEED_MODE, LEDC_CHANNEL_1, pwm);
+            } else if(u> 1023) {
+                gpio_set_level(IN1_PIN, 1);
+                gpio_set_level(IN2_PIN, 0);
+                ledc_set_duty(LEDC_HIGH_SPEED_MODE, LEDC_CHANNEL_1, 1023);
+            }
+            else {
+                gpio_set_level(IN1_PIN, 0);
+                gpio_set_level(IN2_PIN, 0);
+                ledc_set_duty(LEDC_HIGH_SPEED_MODE, LEDC_CHANNEL_1, 0);
+            }
+        } else {
+            gpio_set_level(IN1_PIN, 0);
+            gpio_set_level(IN2_PIN, 0);
+        }
+        ledc_update_duty(LEDC_HIGH_SPEED_MODE, LEDC_CHANNEL_1);
+
+
+
+        /*if (pid.output < 256 && pid.output > 0) {
+            
         }
         else if(pid.output <= 0){
             ledc_set_duty(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_1, 0);
@@ -338,7 +362,7 @@ void pid_control_task(void *args) {
         else if(pid.output > 255){
             ledc_set_duty(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_1, 255);
             ledc_update_duty(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_1);
-        }
-        vTaskDelay(pdMS_TO_TICKS(50));
+        }*/
+        vTaskDelay(pdMS_TO_TICKS(10));
     }
 }
