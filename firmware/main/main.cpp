@@ -25,6 +25,8 @@ extern "C"{
 #define WIFI_SSID "MaPh"
 #define WIFI_PASSWORD "Aiman#Alabsi#2018"
 
+uint32_t pulses = 0;
+
 void mqtt_message_callback(const char *topic, const char *payload)
 {
     if (strcmp(payload, "1") == 0)
@@ -78,6 +80,46 @@ void keep_wifi_and_mqtt(void* args){
     }
 }
 
+static QueueHandle_t gpio_evt_queue = xQueueCreate(10, sizeof(uint32_t));
+
+static void IRAM_ATTR button_isr_handler(void* arg) {
+    int pin = (int)arg;
+    // For example, just print pin number
+    ++pulses;
+}
+
+#define BUTTON_PIN GPIO_NUM_19  // GPIO0 as example
+
+/*void button_task(void* arg) {
+    uint32_t pin;
+    while (1) {
+        if (xQueueReceive(gpio_evt_queue, &pin, portMAX_DELAY)) {
+            // Safe to print/log here (task context)
+            ESP_LOGI("Button: ", "Button pressed on GPIO %d\n", pin);
+        }
+    }
+}*/
+
+void init_button() {
+    gpio_config_t io_conf = {};
+    io_conf.intr_type = GPIO_INTR_POSEDGE;   // rising edge
+    io_conf.mode = GPIO_MODE_INPUT;
+    io_conf.pin_bit_mask = 1ULL << BUTTON_PIN;
+    io_conf.pull_down_en = GPIO_PULLDOWN_DISABLE;
+    io_conf.pull_up_en = GPIO_PULLUP_ENABLE;
+    gpio_config(&io_conf);
+
+    // Install ISR service
+    gpio_install_isr_service(0);  // default flags
+
+    // Attach ISR handler
+    gpio_isr_handler_add(BUTTON_PIN, button_isr_handler, (void*)BUTTON_PIN);
+
+    /*gpio_evt_queue = xQueueCreate(10, sizeof(uint32_t));
+    xTaskCreate(button_task, "button_task", 2048, NULL, 10, NULL);
+    */
+}
+
 extern "C" void app_main(void)
 {
 
@@ -101,6 +143,8 @@ extern "C" void app_main(void)
         .hpoint         = 0,
     };
     ledc_channel_config(&ledc_channel);
+
+    init_button();
 
     xTaskCreate(
         keep_wifi_and_mqtt,
