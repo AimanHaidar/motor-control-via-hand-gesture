@@ -33,9 +33,11 @@ extern "C"{
 #define WIFI_PASSWORD "Aiman#Alabsi#2018"
 
 //PID parameters
-#define MOTOR_KP 22.50
-#define MOTOR_KI 36.75
-#define MOTOR_KD 4.75
+float MOTOR_KP = 22.50;
+float MOTOR_KI = 36.75;
+float MOTOR_KD = 4.75;
+
+PIDController pid(MOTOR_KP, MOTOR_KI, MOTOR_KD);
 
 #define PULSES_PER_TURN 24
 
@@ -45,6 +47,7 @@ float enable = 0.0;
 
 //=== Forward Declarations =====================================================
 void mqtt_message_callback(const char *topic, const char *payload);
+void pid_message_callback(const char *topic, const char *payload);
 void keep_wifi_and_mqtt(void* args);
 static void IRAM_ATTR encoder_pin_isr_handler(void* arg);
 void measureMotorSpeed(void *args);
@@ -88,8 +91,9 @@ extern "C" void app_main(void)
     do{
         msg_id = mqtt_subscribe_topic("esp32/command/speed", 0, mqtt_message_callback);
         ESP_LOGI("hell: ","sent subscribe successful, msg_id=%d", msg_id);
-
-        vTaskDelay(pdMS_TO_TICKS(100));
+        msg_id = mqtt_subscribe_topic("esp32/command/pid", 0, pid_message_callback);
+        ESP_LOGI("hell: ","sent subscribe successful, msg_id=%d", msg_id);
+        vTaskDelay(pdMS_TO_TICKS(500));
     }
     while(!mqtt_is_connected() || msg_id == 0);
 
@@ -156,6 +160,30 @@ void mqtt_message_callback(const char *topic, const char *payload)
         // @todo: implement stop behavior
         ledc_set_duty(LED_MODE, LED_CHANNEL, 0);
         ledc_update_duty(LED_MODE, LED_CHANNEL);
+    }
+}
+
+/**
+ * @brief this function handles the PID message callback.
+ *
+ */
+void pid_message_callback(const char *topic, const char *payload)
+{
+    if (strcmp(topic, "esp32/command/pid") == 0)
+    {
+        // Parse the PID values from the payload
+        float kp, ki, kd;
+        try{
+            sscanf(payload, "%f,%f,%f", &kp, &ki, &kd);
+        }
+        catch(...){
+            ESP_LOGE("PID", "Error parsing PID values from payload: %s", payload);
+            return;
+        }
+        ESP_LOGI("PID", "Received new PID values: Kp=%0.2f, Ki=%0.2f, Kd=%0.2f", kp, ki, kd);
+
+        // Update the PID controller with the new values
+        pid.setTunings(kp, ki, kd);
     }
 }
 
@@ -293,7 +321,7 @@ void init_ledc_2(void){
 }
 
 void pid_control_task(void *args) {
-    PIDController pid(MOTOR_KP, MOTOR_KI, MOTOR_KD);
+    
     while (1) {
         // Implement PID control logic here
         pid.setValues(speed, V_Filt); // Example setpoint and actual value

@@ -26,3 +26,9 @@ void PIDController::setValues(double setpoint,double Actual){
     actual = Actual;
     error = setPoint - actual;
 }
+
+void PIDController::setTunings(double KP, double KI, double KD) {
+    kp = KP;
+    ki = KI;
+    kd = KD;
+}

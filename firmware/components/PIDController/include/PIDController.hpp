@@ -8,6 +8,7 @@ class PIDController{
       PIDController(double KP,double KI, double KD);
      void control();
      void setValues(double setpoint,double Actual);
+     void setTunings(double KP, double KI, double KD);
      double output;
 
    private:
