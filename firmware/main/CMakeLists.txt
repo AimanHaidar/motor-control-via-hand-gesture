@@ -1,2 +1,5 @@
-idf_component_register(SRCS "main.c"
-                    INCLUDE_DIRS ".")
+idf_component_register(SRCS "main.cpp"
+                    INCLUDE_DIRS "."
+                    REQUIRES PIDController wifi_connection mqtt_comm driver micro_ros_espidf_component
+)
+target_compile_options(${COMPONENT_LIB} PRIVATE -std=gnu++17)

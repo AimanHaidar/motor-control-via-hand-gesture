@@ -13,7 +13,6 @@
 #include "esp_netif.h"
 #include "esp_log.h"
 #include "mqtt_client.h"
-#include "wifi_connection.h"
 
 #define CONFIG_BROKER_URL "mqtt://192.168.0.81"
 

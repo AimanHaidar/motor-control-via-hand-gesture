@@ -1,13 +1,19 @@
-#include <stdio.h>
-#include <string.h>
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
-#include "wifi_connection.h"
-#include "mqtt_comm.h"
-#include "driver/gpio.h"
+extern "C"{
+    #include <stdio.h>
+    #include <string.h>
+    #include "freertos/FreeRTOS.h"
+    #include "freertos/task.h"
+    #include "wifi_connection.h"
+    #include "mqtt_comm.h"
+    #include "driver/gpio.h"
 
-#include "driver/ledc.h"
-#include "esp_err.h"
+    #include "driver/ledc.h"
+    #include "esp_err.h"
+
+    #include "rcl/rcl.h"
+}
+
+#include "PIDController.hpp"
 
 #define LED_PIN 2
 #define LED_CHANNEL LEDC_CHANNEL_0
@@ -72,13 +78,13 @@ void keep_wifi_and_mqtt(void* args){
     }
 }
 
-void app_main(void)
+extern "C" void app_main(void)
 {
 
     ledc_timer_config_t ledc_timer = {
         .speed_mode       = LED_MODE,
-        .timer_num        = LED_TIMER,
         .duty_resolution  = LED_RESOLUTION,
+        .timer_num        = LED_TIMER,
         .freq_hz          = LED_FREQUENCY,
         .clk_cfg          = LEDC_AUTO_CLK,
     };
@@ -86,11 +92,11 @@ void app_main(void)
 
     // Configure LED PWM channel
     ledc_channel_config_t ledc_channel = {
+        .gpio_num       = LED_PIN,
         .speed_mode     = LED_MODE,
         .channel        = LED_CHANNEL,
-        .timer_sel      = LED_TIMER,
         .intr_type      = LEDC_INTR_DISABLE,
-        .gpio_num       = LED_PIN,
+        .timer_sel      = LED_TIMER,
         .duty           = 0, // start with LED off
         .hpoint         = 0,
     };
