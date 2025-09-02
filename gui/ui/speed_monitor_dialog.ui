@@ -28,7 +28,7 @@
     </font>
    </property>
    <property name="text">
-    <string>Set Speed:           rpm</string>
+    <string>Commanded Speed:           rpm</string>
    </property>
    <property name="alignment">
     <set>Qt::AlignCenter</set>

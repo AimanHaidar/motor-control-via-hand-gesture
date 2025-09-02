@@ -36,5 +36,5 @@ class Ui_Dialog(object):
     def retranslateUi(self, Dialog):
         _translate = QtCore.QCoreApplication.translate
         Dialog.setWindowTitle(_translate("Dialog", "Dialog"))
-        self.set_speed.setText(_translate("Dialog", "Set Speed:           rpm"))
+        self.set_speed.setText(_translate("Dialog", "Commanded Speed:           rpm"))
         self.actual_speed.setText(_translate("Dialog", "Actual Speed:          rpm"))

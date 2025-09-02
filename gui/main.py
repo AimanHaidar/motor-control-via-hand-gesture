@@ -25,7 +25,7 @@ class MainWindow(QMainWindow):
         self.client.loop_start()  # starts a background thread to handle messages
 
         print("MQTT client connected")
-        self.speed_dialog = None
+        self.speed_dialog = SpeedMonitorDialog()
 
         self.ui.set_pid.clicked.connect(self.open_pid_dialog)
         self.ui.show_speed.clicked.connect(self.show_speed)
@@ -35,7 +35,7 @@ class MainWindow(QMainWindow):
         dialog.exec_()
 
     def show_speed(self):
-        self.speed_dialog = SpeedMonitorDialog(self)
+        self.speed_dialog = SpeedMonitorDialog()
         self.speed_dialog.exec_()
 
     # Callback when connected to broker
@@ -51,9 +51,9 @@ class MainWindow(QMainWindow):
     def on_message(self,client, userdata, msg):
         topic = msg.topic
         if msg.topic == SPEED_TOPIC:
-            self.speed_dialog.ui.actual_speed.setText(f"Actual Speed: {msg.payload.decode()}")
+            self.speed_dialog.ui.actual_speed.setText(f"Actual Speed: {msg.payload.decode()} rpm")
         elif msg.topic == SPEED_COMMAND_TOPIC:
-            self.speed_dialog.ui.set_speed.setText(f"Commanded Speed: {msg.payload.decode()}")
+            self.speed_dialog.ui.set_speed.setText(f"Commanded Speed: {msg.payload.decode()} rpm")
         
 if __name__ == "__main__":
     print("Starting application...")

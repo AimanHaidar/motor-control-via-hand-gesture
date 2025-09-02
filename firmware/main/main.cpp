@@ -12,7 +12,7 @@ extern "C"{
     #include "esp_err.h"
     //#include "esp_lcd_panel_io.h"
     //#include "esp_lcd_panel_vendor.h"
-    #include "rcl/rcl.h"
+    //#include "rcl/rcl.h"
     #include "driver/i2c_master.h"
 }
 
@@ -49,6 +49,9 @@ volatile uint16_t pulses = 0;
 static portMUX_TYPE pulses_mux = portMUX_INITIALIZER_UNLOCKED;
 float speed = 0.0;
 float enable = 0.0;
+
+#define SPEED_TOPIC "esp32/sensor/speed"
+#define SPEED_COMMAND_TOPIC "esp32/command/speed"
 
 //=== Forward Declarations =====================================================
 void mqtt_message_callback(const char *topic, const char *payload);
@@ -113,7 +116,7 @@ void mqtt_message_callback(const char *topic, const char *payload)
     if (strcmp(payload, "1") == 0)
     {
         ESP_LOGI("mode", "1");
-        
+    
         speed = 60.0f;
         ledc_set_duty(LED_MODE, LED_CHANNEL, 255/5);
         ledc_update_duty(LED_MODE, LED_CHANNEL);
@@ -234,6 +237,9 @@ void measureMotorSpeed(void *args){
         pulses = 0;
         taskEXIT_CRITICAL(&pulses_mux);
         V_Filt = 0.854 * V_Filt + 0.0728 * V + 0.0728 * V_Prev;
+        char buffer[20];  // make sure it's large enough
+        sprintf(buffer, "%.2f", V_Filt);
+        mqtt_publish(SPEED_TOPIC, buffer, 0);
         V_Prev = V;
         //ESP_LOGI("Speed: ", "Speed: %0.2f RPM", V_Filt,"set Speed: ", "%0.2f RPM", speed);
         vTaskDelay(pdMS_TO_TICKS(50));
