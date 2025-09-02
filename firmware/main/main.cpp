@@ -33,8 +33,8 @@ extern "C"{
 #define ENA_CHANNEL LEDC_CHANNEL_1
 
 // WIFI
-#define WIFI_SSID "MaPh"
-#define WIFI_PASSWORD "Aiman#Alabsi#2018"
+//#define WIFI_SSID "MaPh"
+//#define WIFI_PASSWORD "Aiman#Alabsi#2018"
 
 //PID parameters
 float MOTOR_KP = 22.50;
@@ -196,7 +196,7 @@ void keep_wifi_and_mqtt(void* args){
             vTaskDelay(pdMS_TO_TICKS(10000));
             continue;
         }
-        wifi_connect(WIFI_SSID, WIFI_PASSWORD);
+        wifi_connect(CONFIG_WIFI_SSID, CONFIG_WIFI_PASSWORD);
         mqtt_start();
     }
 }

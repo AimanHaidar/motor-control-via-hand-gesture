@@ -14,8 +14,6 @@
 #include "esp_log.h"
 #include "mqtt_client.h"
 
-#define CONFIG_BROKER_URL "mqtt://192.168.0.81"
-
 typedef struct {
     const char *topic;
     int qos;

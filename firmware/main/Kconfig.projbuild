@@ -1,0 +1,17 @@
+menu "User Configuration String"
+config WIFI_SSID
+        string "Wi-Fi SSID"
+        default "MyWiFi"
+
+config WIFI_PASSWORD
+        string "Wi-Fi Password"
+        default "12345678"
+
+config MQTT_BROKER_URL
+        string "MQTT Broker URL"
+        default "mqtt://192.168.0.81"
+
+config MQTT_PORT
+        int "MQTT Broker Port"
+        default 1883
+endmenu
