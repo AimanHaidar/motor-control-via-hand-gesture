@@ -40,6 +40,9 @@ class MainWindow(QMainWindow):
 
     # Callback when connected to broker
     def on_connect(self,client, userdata, flags, rc):
+        """
+            function to be called when the client connects to the broker
+        """
         if rc == 0:
             print("Connected successfully")
             client.subscribe(SPEED_TOPIC)
@@ -49,6 +52,9 @@ class MainWindow(QMainWindow):
 
     # Callback when a message is received
     def on_message(self,client, userdata, msg):
+        """
+            function to be called when a message is received
+        """
         topic = msg.topic
         if msg.topic == SPEED_TOPIC:
             self.speed_dialog.ui.actual_speed.setText(f"Actual Speed: {msg.payload.decode()} rpm")
