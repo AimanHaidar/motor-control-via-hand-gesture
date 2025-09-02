@@ -1,5 +1,5 @@
 from PyQt5 import QtWidgets
-from gui.generated.speed_monitor_dialog import Ui_Dialog
+from generated.speed_monitor_dialog import Ui_Dialog
 
 class SpeedMonitorDialog(QtWidgets.QDialog):
     def __init__(self, parent=None):

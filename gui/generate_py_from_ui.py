@@ -22,7 +22,7 @@ for ui_file in UI_DIR.glob("*.ui"):
     if not path_file.is_file() and ui_file.stem.split("_")[-1]=="dialog":
         with open(path_file,'w') as f:
             f.write("from PyQt5 import QtWidgets\n")
-            f.write(f"from gui.generated.{ui_file.stem} import Ui_Dialog\n\n")
+            f.write(f"from generated.{ui_file.stem} import Ui_Dialog\n\n")
             f.write(f"class {ui_file.stem.replace("_", " ").title().replace(" ", "")}(QtWidgets.QDialog):\n")
             f.write("""    def __init__(self, parent=None):
         super().__init__(parent)
