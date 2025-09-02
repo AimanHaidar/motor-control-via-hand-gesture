@@ -80,13 +80,13 @@ uv sync
 ##### linux
 ```bash
 #in gesture_recognition
-uv run main.py
+uv run main.py --port 1883 --broker "192.168.0.81"
 ```
 ##### windows
 ```cmd
 REM in gesture_recognition
 .venv/Scripts/activate
-python -m main
+python -m main --port 1883 --broker "192.168.0.81"
 ```
 4. Launch PyQt5 dashboard (new terminal)
 
