@@ -1,4 +1,4 @@
-menu "User Configuration String"
+menu "User Connection Configuration"
 config WIFI_SSID
         string "Wi-Fi SSID"
         default "MyWiFi"
