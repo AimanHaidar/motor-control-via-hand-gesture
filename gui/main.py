@@ -53,8 +53,11 @@ class MainWindow(QMainWindow):
         if msg.topic == SPEED_TOPIC:
             self.speed_dialog.ui.actual_speed.setText(f"Actual Speed: {msg.payload.decode()} rpm")
         elif msg.topic == SPEED_COMMAND_TOPIC:
-            self.speed_dialog.ui.set_speed.setText(f"Commanded Speed: {msg.payload.decode()} rpm")
-        
+            if msg.payload.decode() == "stop" or msg.payload.decode() == "0":
+                self.speed_dialog.ui.set_speed.setText(f"Commanded Speed: 0 rpm")
+            else:
+                self.speed_dialog.ui.set_speed.setText(f"Commanded Speed: {100.0+(float(msg.payload.decode())-1)*50} rpm")
+
 if __name__ == "__main__":
     print("Starting application...")
     app = QApplication([])

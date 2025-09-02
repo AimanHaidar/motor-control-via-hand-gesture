@@ -117,7 +117,7 @@ void mqtt_message_callback(const char *topic, const char *payload)
     {
         ESP_LOGI("mode", "1");
     
-        speed = 60.0f;
+        speed = 100.0f;
         ledc_set_duty(LED_MODE, LED_CHANNEL, 255/5);
         ledc_update_duty(LED_MODE, LED_CHANNEL);
 
@@ -126,7 +126,7 @@ void mqtt_message_callback(const char *topic, const char *payload)
     else if(strcmp(payload, "2") == 0){
         ESP_LOGI("mode", "2");
         
-        speed = 100.0f;
+        speed = 150.0f;
         ledc_set_duty(LED_MODE, LED_CHANNEL, 255/4);
         ledc_update_duty(LED_MODE, LED_CHANNEL);
     }
@@ -134,7 +134,7 @@ void mqtt_message_callback(const char *topic, const char *payload)
     {
         ESP_LOGI("mode", "3");
         
-        speed = 140.0f;
+        speed = 200.0f;
         ledc_set_duty(LED_MODE, LED_CHANNEL, 255/3);
         ledc_update_duty(LED_MODE, LED_CHANNEL);
     }
@@ -142,7 +142,7 @@ void mqtt_message_callback(const char *topic, const char *payload)
     {
         ESP_LOGI("mode", "4");
         
-        speed = 200.0f;
+        speed = 250.0f;
         ledc_set_duty(LED_MODE, LED_CHANNEL, 255/2);
         ledc_update_duty(LED_MODE, LED_CHANNEL);
     }
@@ -150,7 +150,7 @@ void mqtt_message_callback(const char *topic, const char *payload)
     {
         ESP_LOGI("mode", "5");
         
-        speed = 250.0f;
+        speed = 300.0f;
         ledc_set_duty(LED_MODE, LED_CHANNEL, 255);
         ledc_update_duty(LED_MODE, LED_CHANNEL);
     }
