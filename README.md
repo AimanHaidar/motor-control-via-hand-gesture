@@ -7,8 +7,16 @@
 
 ## 1. Project Summary
 This project implements a closed‑loop motor speed control system on an ESP32 using a PID controller. The target speed (setpoint) is selected hands‑free by counting raised fingers in front of a camera (gesture recognition on a host machine with random forest model). A lightweight PyQt5 desktop dashboard provides live telemetry (speed, setpoint, mode) and allows runtime tuning of PID gains without reflashing. Communication between the ESP32 firmware and the desktop / gesture subsystems is performed over MQTT.
+## 2. Tested Environment
 
-## 2. Gesture Mapping (Default)
+- Python 3.10
+- PyQt5 5.15
+- OpenCV 4.7
+- ESP-IDF v6.0
+- FreeRTOS (bundled with ESP-IDF)
+- OS: Ubuntu 24.04 LTS
+
+## 3. Gesture Mapping (Default)
 | Fingers | Mode Name | Target % of Max | Notes |
 |---------|-----------|-----------------|-------|
 | 0 | Stop | 0 | Motor disabled |
@@ -18,7 +26,7 @@ This project implements a closed‑loop motor speed control system on an ESP32 u
 | 4 | High | 250 | Near full load |
 | 5 | Max | 300 | Full duty (capped by motor and driver limits) |
 
-## 3. Hardware Overview (Fill In)
+## 4. Hardware Overview (Fill In)
 Add specifics:
 | Item | Example | Notes |
 |------|---------|-------|
@@ -31,7 +39,7 @@ Add specifics:
 
 Include wiring diagram / pin table (GPIO for PWM, encoder A/B, etc.).
 
-## 4. Software Stack
+## 5. Software Stack
 | Layer | Technology |
 |-------|------------|
 | Firmware SDK | ESP-IDF (version: FILL_IN) |
@@ -41,7 +49,7 @@ Include wiring diagram / pin table (GPIO for PWM, encoder A/B, etc.).
 | UI | PyQt5 + (pyqtgraph / matplotlib) |
 | Build Tools | idf.py, CMake, Python virtual env |
 
-## 5. Build & Flash (ESP-IDF Firmware)
+## 6. Build & Flash (ESP-IDF Firmware)
 
 
 ```bash
@@ -63,7 +71,7 @@ idf.py -p <PORT> monitor
 ```
 Use Ctrl+] to exit the monitor.
 
-## 6. Desktop Environment Setup (Placeholders)
+## 7. Desktop Environment Setup (Placeholders)
 Steps to fill in:
 1. Create virtual environment in each
 gesture_rovognition and gui or just use uv sync
