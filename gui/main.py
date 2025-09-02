@@ -12,6 +12,7 @@ BROKER = "192.168.0.81"  # same as mqtt_server in ESP
 PORT = 1883
 PID_TOPIC = "esp32/command/pid"
 SPEED_TOPIC = "esp32/sensor/speed"
+SPEED_COMMAND_TOPIC = "esp32/command/speed"
 class MainWindow(QMainWindow):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -42,13 +43,18 @@ class MainWindow(QMainWindow):
         if rc == 0:
             print("Connected successfully")
             client.subscribe(SPEED_TOPIC)
+            client.subscribe(SPEED_COMMAND_TOPIC)
         else:
             print("Connection failed with code", rc)
 
     # Callback when a message is received
     def on_message(self,client, userdata, msg):
-        self.speed_dialog.ui.actual_speed.setText(f"Actual Speed: {msg.payload.decode()}")
-
+        topic = msg.topic
+        if msg.topic == SPEED_TOPIC:
+            self.speed_dialog.ui.actual_speed.setText(f"Actual Speed: {msg.payload.decode()}")
+        elif msg.topic == SPEED_COMMAND_TOPIC:
+            self.speed_dialog.ui.set_speed.setText(f"Commanded Speed: {msg.payload.decode()}")
+        
 if __name__ == "__main__":
     print("Starting application...")
     app = QApplication([])
