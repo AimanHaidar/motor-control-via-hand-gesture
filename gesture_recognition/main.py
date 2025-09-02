@@ -7,6 +7,8 @@ import time
 
 import paho.mqtt.client as mqtt
 
+from collections import Counter
+
 BROKER = "192.168.0.81"  # same as mqtt_server in ESP
 PORT = 1883
 TOPIC = "esp32/command/speed"
@@ -34,19 +36,29 @@ def thumb_gesture(detector,publish):
             publish(TOPIC,f"Prediction: {prediction[0]}")
 
 def hand_gesture(detector,publish):
+    pred_buffer = []
+    last_time = time.time()
+    print("start hand gesture")
     while not detector.closed:
         if not detector.running:
             time.sleep(0.05)
             continue
 
         if detector.gesture == "00100":
-            publish(TOPIC,"stop")
+            pred_buffer.append("stop")
         
         else:
             mode = detector.gesture.count('1')
-            publish(TOPIC,mode)
+            pred_buffer.append(mode)
 
-        time.sleep(0.2)
+        if (time.time() - last_time) > 0.75:
+            most_common = Counter(pred_buffer).most_common(1)[0][0]
+            print(most_common)
+            publish(TOPIC,most_common)
+            last_time = time.time()
+            pred_buffer = []
+
+        time.sleep(0.1)
 
 
 if __name__ == "__main__":
